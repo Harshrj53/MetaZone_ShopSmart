@@ -1,24 +1,30 @@
 version: '3.8'
 
 services:
-  db:
-    image: mysql:8.0
-    container_name: shopforge-mysql
+  backend:
+    build:
+      context: ./backend
+    container_name: metazone-backend
     restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-shopforge}
-      MYSQL_USER: ${MYSQL_USER:-shopforge_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-shopforge_pass}
     ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - PORT=5000
+      - NODE_ENV=production
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./client
+    container_name: metazone-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
 
   redis:
     image: redis:7-alpine
@@ -29,8 +35,5 @@ services:
     volumes:
       - redis_data:/data
 
-  # Backend and Frontend will be added here in Phase 10
-  
 volumes:
-  mysql_data:
   redis_data:
