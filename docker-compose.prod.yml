@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  backend:
+    image: ${DOCKER_USERNAME}/metazone-backend:latest
+    container_name: metazone-backend-prod
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGODB_URI=${MONGODB_URI}
+      - REDIS_URL=redis://redis:6379
+      - PORT=5000
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - redis
+
+  frontend:
+    image: ${DOCKER_USERNAME}/metazone-frontend:latest
+    container_name: metazone-frontend-prod
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    container_name: metazone-redis-prod
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

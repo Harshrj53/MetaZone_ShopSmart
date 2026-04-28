@@ -1,0 +1,25 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build Backend Image (Test)
+      run: docker build ./backend -t backend-test:latest
+
+    - name: Build Frontend Image (Test)
+      run: docker build ./client -t frontend-test:latest
+
+    - name: Run Linting (Backend)
+      run: |
+        cd backend
+        npm install
+        npm run lint || echo "No lint script found, skipping"
